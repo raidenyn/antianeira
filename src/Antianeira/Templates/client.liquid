@@ -1,0 +1,14 @@
+﻿{{ client.comment | comment }}
+@Injectable()
+{{ client | class }}
+{
+constructor(
+	@Inject(HttpClientUtils) private _httpClientUtils: HttpClientUtils
+) {
+	{% if client.base_type %}
+    super();
+	{% endif %}
+}
+
+{{ client | methods }}
+}

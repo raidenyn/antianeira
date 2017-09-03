@@ -1,0 +1,27 @@
+﻿{{ client_method.comment | comment }}
+public {{ client_method.name }}(request: {{ client_method | request }}): Observable<{{ client_method | response }}> {
+	let url: string = '{{ client_method | url }}';
+	
+	{% if client_method.has_params %}
+	const removeRouteParameters = true;
+	request = Object.assign({ }, request);
+	{% else %}
+	const removeRouteParameters = false;
+	{% endif %}
+
+	{% if client_method.has_route_params %}
+	url = this._httpClientUtils.templateUrl(url, request, removeRouteParameters);
+	{% endif %}
+	
+    const options = {
+		{% if client_method.has_body %}
+		body: request,
+		{% endif %}
+		{% if client_method.has_params %}
+		params: request,
+		{% endif %}
+        method: '{{ client_method | method }}'
+    };
+
+    return this._httpClientUtils.ajax(url, options);
+}
