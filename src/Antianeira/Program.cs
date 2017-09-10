@@ -34,9 +34,18 @@ namespace Antianeira
                                             "Path to output typescript file.",
                                             CommandOptionType.SingleValue);
 
+                var types = command.Option("--types <types>",
+                                           "Glob pattern of namespace",
+                                           CommandOptionType.SingleValue);
+
                 command.OnExecute(() =>
                 {
-                    Generate(input.Value, output.Value());
+                    var options = new ApiControllerLoaderOptions
+                    {
+                        TypeFilter = types.HasValue() ? types.Value() : "*"
+                    };
+
+                    Generate(input.Value, output.Value(), options);
                     return 0;
                 });
             });
@@ -44,10 +53,10 @@ namespace Antianeira
             app.Execute(args);
         }
 
-        public static void Generate(string assemblyPath, string outputPath) {
+        public static void Generate(string assemblyPath, string outputPath, ApiControllerLoaderOptions options) {
             var definitions = new Definitions();
 
-            new ApiControllerLoader().Read(Assembly.LoadFrom(assemblyPath), definitions);
+            new ApiControllerLoader().Read(Assembly.LoadFrom(assemblyPath), definitions, options);
 
             if (String.IsNullOrEmpty(outputPath)) {
                 outputPath = Path.ChangeExtension(assemblyPath, "ts");

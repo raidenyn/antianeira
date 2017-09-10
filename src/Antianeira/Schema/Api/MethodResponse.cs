@@ -6,6 +6,6 @@ namespace Antianeira.Schema.Api
     public class MethodResponse : Drop
     {
         [CanBeNull]
-        public TsType Type { get; set; }
+        public TypeReference Type { get; set; }
     }
 }

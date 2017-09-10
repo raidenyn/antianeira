@@ -19,9 +19,19 @@ namespace Antianeira.Schema
         [CanBeNull]
         public Comment Comment { get; set; }
 
-        public override string ToString()
+        public virtual void Write(IWriter writer)
         {
-            return Name;
+            Comment?.Write(writer);
+
+            if (IsDeclared)
+            {
+                writer.Append("declare ");
+            }
+
+            if (IsExported)
+            {
+                writer.Append("export ");
+            }
         }
     }
 }

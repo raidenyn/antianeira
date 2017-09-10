@@ -16,6 +16,9 @@ namespace Antianeira.MetadataReader
         public IPropertyTypeMapper PropertyTypeMapper { get; set; }
 
         [NotNull]
+        public IInterfaceNameMapper InterfaceNameMapper { get; set; } = new InterfaceNameMapper();
+
+        [NotNull]
         public IPropertyNameMapper PropertyNameMapper { get; set; } = new CamelCasePropertyTypeName();
 
         [NotNull]

@@ -2,7 +2,7 @@
   "profiles": {
     "Antianeira": {
       "commandName": "Project",
-      "commandLineArgs": "generate D:\\projects\\privates\\trapezaria2\\src\\Trapezaria.WebUI\\bin\\Debug\\net461\\win7-x64\\Trapezaria.WebUI.exe -o D:\\projects\\privates\\trapezaria2\\src\\Trapezaria.WebUI\\content\\src\\app\\admin\\app.clients2.ts"
+      "commandLineArgs": "generate D:\\projects\\privates\\trapezaria2\\src\\Trapezaria.WebUI\\bin\\Debug\\net461\\win7-x64\\Trapezaria.WebUI.exe -o D:\\projects\\privates\\trapezaria2\\src\\Trapezaria.WebUI\\content\\src\\app\\admin\\app.clients.ts --types *.Admin*"
     }
   }
 }

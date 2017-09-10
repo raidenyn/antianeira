@@ -5,7 +5,7 @@ namespace Antianeira.Formatters.Filters
 {
     public static class TypeFilters
     {
-        public static string Type(PropertyType type)
+        public static string Type(TypeReference type)
         {
             var sb = new StringBuilder();
 

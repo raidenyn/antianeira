@@ -16,10 +16,10 @@ namespace Antianeira.Schema.Api
         public bool HasParams { get { return Url?.Parameters?.Structure != null; } }
 
         [NotNull]
-        public bool HasRouteParams { get { return Url?.Path.Contains("{") ?? false; } }
+        public bool HasBody { get { return Request?.Type != null; } }
 
         [NotNull]
-        public bool HasBody { get { return Request?.Type != null; } }
+        public bool HasArguments => HasParams || HasBody;
 
         [NotNull]
         public HttpMethod HttpMethod { get; set; }

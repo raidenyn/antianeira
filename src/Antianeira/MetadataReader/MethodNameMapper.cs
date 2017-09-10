@@ -14,7 +14,12 @@ namespace Antianeira.MetadataReader
     {
         public string GetMethodName(MethodInfo method)
         {
-            return StringUtils.ToCamelCase(method.Name);
+            var name = method.Name;
+            if (name.EndsWith("Async")) {
+                name = name.Substring(0, name.Length - 4);
+            }
+
+            return StringUtils.ToCamelCase(name);
         }
     }
 }

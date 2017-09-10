@@ -4,6 +4,6 @@ namespace Antianeira.Schema.Api
 {
     public class MethodRequest : Drop
     {
-        public TsType Type { get; set; }
+        public TypeReference Type { get; set; }
     }
 }

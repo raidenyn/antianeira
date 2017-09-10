@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Antianeira.MetadataReader
 {
@@ -21,9 +22,12 @@ namespace Antianeira.MetadataReader
         }
 
         [NotNull]
-        public void Read([NotNull] Assembly assembly, Definitions definitions) {
+        public void Read([NotNull] Assembly assembly, Definitions definitions, ApiControllerLoaderOptions options = null) {
+            options = options ?? new ApiControllerLoaderOptions();
+
             var controllers = from type in assembly.GetTypes()
                               where typeof(Controller).IsAssignableFrom(type)
+                                    && Glob.Glob.IsMatch(type.FullName, options.TypeFilter)
                               select type;
 
             foreach (var controller in controllers) {
@@ -66,9 +70,10 @@ namespace Antianeira.MetadataReader
         [CanBeNull]
         private Method GetMethod([NotNull] MethodInfo methodInfo, [NotNull] ServiceClient client, [NotNull] Definitions definitions)
         {
-            var method = new Method();
-
-            method.Name = _settings.MethodNameMapper.GetMethodName(methodInfo);
+            var method = new Method
+            {
+                Name = _settings.MethodNameMapper.GetMethodName(methodInfo)
+            };
 
             var httpMethodAttr = methodInfo.GetCustomAttribute<HttpMethodAttribute>();
             method.HttpMethod = new HttpMethod(httpMethodAttr?.HttpMethods.FirstOrDefault() ?? HttpMethod.Get.Method);
@@ -80,24 +85,26 @@ namespace Antianeira.MetadataReader
                 return null;
             }
 
-            method.Url = new MethodUrl();
-            method.Url.Path = classRouteAttr?.Template + "/" + methodRouteAttr?.Template;
+            method.Url = new MethodUrl
+            {
+                Path = classRouteAttr?.Template + "/" + methodRouteAttr?.Template
+            };
 
             var parameters = ParametersReader.ReadFrom(methodInfo);
 
-            var bodyParameter = parameters.FirstOrDefault(p=>p.PassOver == ParameterPassOver.Body);
+            var bodyParameter = parameters.Find(p => p.PassOver == ParameterPassOver.Body);
             if (bodyParameter != null)
             {
                 method.Request = new MethodRequest
                 {
-                    Type = _settings.DefinitionsMapper.ConvertType(bodyParameter.Type.GetTypeInfo(), definitions)
+                    Type = _settings.PropertyTypeMapper.GetPropertyType(bodyParameter.Type.GetTypeInfo(), new PropertyTypeContext(definitions))
                 };
             }
 
             var queryParameters = parameters.Where(p => p.PassOver == ParameterPassOver.Query).ToArray();
-            if (queryParameters.Any())
+            if (queryParameters.Length > 0)
             {
-                var structureParam = queryParameters.FirstOrDefault(p=>!p.Type.IsPrimitive && typeof(string) != p.Type);
+                var structureParam = Array.Find(queryParameters, p => !p.Type.IsPrimitive && typeof(string) != p.Type);
 
                 if (structureParam != null)
                 {
@@ -107,14 +114,17 @@ namespace Antianeira.MetadataReader
                     var singleParameters = queryParameters;
                     var name = "I" + client.Name + methodInfo.Name + "Request";
                     method.Url.Parameters.Structure = definitions.Interfaces.GetOrCreate(name, () => {
-                        var @interface = new Interface(name);
-                        @interface.IsExported = true;
+                        var @interface = new Interface(name)
+                        {
+                            IsExported = true
+                        };
 
                         foreach (var param in singleParameters)
                         {
-                            var property = new InterfaceProperty(param.Name);
-
-                            property.Type = _settings.PropertyTypeMapper.GetPropertyType(param.Type.GetTypeInfo(), definitions);
+                            var property = new InterfaceProperty(param.Name)
+                            {
+                                Type = _settings.PropertyTypeMapper.GetPropertyType(param.Type.GetTypeInfo(), new PropertyTypeContext(definitions))
+                            };
 
                             @interface.Properties.Add(property);
                         }
@@ -124,14 +134,27 @@ namespace Antianeira.MetadataReader
                 }
             }
 
-            if (methodInfo.ReturnType != null) {
+            var returnType = GetReturnType(methodInfo);
+            if (returnType != null) {
                 method.Response = new MethodResponse
                 {
-                    Type = _settings.DefinitionsMapper.ConvertType(methodInfo.ReturnType.GetTypeInfo(), definitions)
+                    Type = _settings.PropertyTypeMapper.GetPropertyType(returnType.GetTypeInfo(), new PropertyTypeContext(definitions))
                 };
             }
 
             return method;
+        }
+
+        [CanBeNull]
+        private Type GetReturnType([NotNull] MethodInfo methodInfo) {
+            var type = methodInfo.ReturnType;
+
+            if (typeof(Task).IsAssignableFrom(type))
+            {
+                return type.GetGenericArguments().FirstOrDefault();
+            }
+
+            return type;
         }
     }
 
@@ -157,17 +180,18 @@ namespace Antianeira.MetadataReader
         public Type Type;
     }
 
-    public class ParametersReader {
+    public static class ParametersReader {
         public static List<Parameter> ReadFrom(MethodInfo method) {
             return method.GetParameters().Select(ReadFrom).ToList();
         }
 
         public static Parameter ReadFrom(ParameterInfo parameter)
         {
-            var result = new Parameter();
-
-            result.Name = parameter.Name;
-            result.Type = parameter.ParameterType;
+            var result = new Parameter
+            {
+                Name = parameter.Name,
+                Type = parameter.ParameterType
+            };
 
             if (parameter.GetCustomAttribute<FromBodyAttribute>() != null)
             {
@@ -200,5 +224,12 @@ namespace Antianeira.MetadataReader
 
             return result;
         }
+    }
+
+    public class ApiControllerLoaderOptions {
+        /// <summary>
+        /// Glob filter
+        /// </summary>
+        public string TypeFilter { get; set; } = "*";
     }
 }

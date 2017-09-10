@@ -7,19 +7,8 @@
 // ReSharper disable InconsistentNaming
 
 import { HttpClientUtils } from './http-client-utils';
-import { Provider } from '@angular/core';
-
-import 'rxjs/add/observable/fromPromise';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/throw';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/toPromise';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/catch';
-
+import { Injectable, Inject } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { Injectable, Inject, Optional, OpaqueToken } from '@angular/core';
-import { Http, Headers, ResponseContentType, Response } from '@angular/http';
 
 {{ definitions | types }}
 
@@ -31,4 +20,6 @@ import { Http, Headers, ResponseContentType, Response } from '@angular/http';
 
 {{ definitions | clients }}
 
-export const CLIENTS = [ {{ definitions.service_clients | names }} ];
+export const CLIENTS = [ 
+{{ definitions.service_clients | names }} 
+];

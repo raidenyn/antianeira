@@ -33,7 +33,7 @@ namespace Antianeira.Formatters.Filters
 
         public static string Names(IEnumerable<ITsType> types)
         {
-            return String.Join(", ", types);
+            return String.Join("," + Environment.NewLine, types);
         }
     }
 }

@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Antianeira.Schema
 {
-    public class ClassProperty : Drop
+    public class ClassProperty : Drop, IWritable
     {
         public ClassProperty(string name)
         {
@@ -14,7 +14,7 @@ namespace Antianeira.Schema
         public string Name { get; set; }
 
         [NotNull]
-        public PropertyType Type { get; set; } = new AnyType();
+        public TypeReference Type { get; set; } = new AnyType();
 
         public PropertyAccessLevel AccessLevel { get; set; }
 
@@ -24,9 +24,36 @@ namespace Antianeira.Schema
 
         [CanBeNull]
         public Comment Comment { get; set; }
+
+        public void Write(IWriter writer)
+        {
+            Comment?.Write(writer);
+
+            writer.Append(AccessLevel.ToString().ToLower());
+            writer.Append(" ");
+
+            if (IsStatic) {
+                writer.Append("static ");
+            } else {
+                if (IsAbstract)
+                {
+                    writer.Append("abstract ");
+                }
+            }
+
+            writer.Append(Name);
+
+            if (Type.IsOptional) {
+                writer.Append("?");
+            }
+
+            writer.Append(": ");
+            Type.Write(writer);
+            writer.Append(";");
+        }
     }
 
-    public class InterfaceProperty : Drop
+    public class InterfaceProperty : Drop, IWritable
     {
         public InterfaceProperty(string name)
         {
@@ -37,9 +64,25 @@ namespace Antianeira.Schema
         public string Name { get; set; }
 
         [NotNull]
-        public PropertyType Type { get; set; } = new AnyType();
+        public TypeReference Type { get; set; } = new AnyType();
 
         [CanBeNull]
         public Comment Comment { get; set; }
+
+        public void Write(IWriter writer)
+        {
+            Comment?.Write(writer);
+
+            writer.Append(Name);
+
+            if (Type.IsOptional)
+            {
+                writer.Append("?");
+            }
+
+            writer.Append(": ");
+            Type.Write(writer);
+            writer.Append(";");
+        }
     }
 }

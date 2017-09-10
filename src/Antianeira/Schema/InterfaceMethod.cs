@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Antianeira.Schema
 {
-    public class InterfaceMethod: Drop
+    public class InterfaceMethod: Drop, IWritable
     {
         [NotNull]
         public string Name { get; set; }
@@ -13,9 +13,30 @@ namespace Antianeira.Schema
         public Comment Comment { get; set; }
 
         [NotNull]
-        public PropertyType Return { get; set; } = new VoidType();
+        public TypeReference Return { get; set; } = new VoidType();
 
         [NotNull]
         public IList<InterfaceMethodParameter> Parameters { get; } = new List<InterfaceMethodParameter>();
+
+        public void Write(IWriter writer)
+        {
+            if (Comment != null)
+            {
+                Comment.Write(writer);
+                writer.Append("\n");
+            }
+
+            writer.Append(Name);
+            writer.Append("(");
+
+            if (Parameters.Count > 0)
+            {
+                writer.Join(", ", Parameters);
+            }
+
+            writer.Append("): ");
+            Return.Write(writer);
+            writer.Append(";");
+        }
     }
 }

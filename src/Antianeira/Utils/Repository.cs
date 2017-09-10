@@ -17,8 +17,11 @@ namespace Antianeira.Utils
         {
             if (!_structures.TryGetValue(name, out var structure))
             {
+                _structures.Add(name, null);
+
                 structure = creator();
-                _structures.Add(name, structure);
+
+                _structures[name] = structure;
             }
 
             return structure;
@@ -61,11 +64,16 @@ namespace Antianeira.Utils
         }
 
         [NotNull]
-        public static IEnumerable<T> AppendList<T>(this Repository<T> repo, [NotNull] IEnumerable<Type> types, [NotNull, ItemNotNull] Func<Type, T> creator)
-            where T : TsType
+        public static IEnumerable<TItem> AppendList<TItem, TSource>(
+            [NotNull] this Repository<TItem> repo,
+            [NotNull, ItemNotNull] IEnumerable<TSource> sources,
+            [NotNull] Func<TSource, string> namer,
+            [NotNull, ItemNotNull] Func<string, TSource, TItem> creator)
+            where TItem : TsType
         {
-            foreach (var type in types) {
-                yield return repo.GetOrCreate(type.Name, () => creator(type));
+            foreach (var source in sources) {
+                var name = namer(source);
+                yield return repo.GetOrCreate(name, () => creator(name, source));
             }
         }
     }

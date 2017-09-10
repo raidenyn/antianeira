@@ -9,7 +9,23 @@ namespace Antianeira.MetadataReader
 {
     public interface IPropertyTypeMapper
     {
-        PropertyType GetPropertyType([NotNull] Type propertyType, [NotNull] Definitions definitions);
+        TypeReference GetPropertyType([NotNull] Type type, [NotNull] PropertyTypeContext context);
+    }
+
+    public class PropertyTypeContext {
+        public PropertyTypeContext(Definitions definitions)
+        {
+            Definitions = definitions;
+        }
+
+        [NotNull]
+        public Definitions Definitions { get; }
+
+        [CanBeNull]
+        public IList<GenericParameter> GenericParameters { get; set; }
+
+        [CanBeNull]
+        public PropertyInfo PropertyInfo { get; set; }
     }
 
     internal class PropertyTypeMapper : IPropertyTypeMapper
@@ -25,7 +41,8 @@ namespace Antianeira.MetadataReader
             [typeof(decimal)] = typeof(NumberType),
             [typeof(float)] = typeof(NumberType),
             [typeof(double)] = typeof(NumberType),
-            [typeof(object)] = typeof(ObjectType)
+            [typeof(object)] = typeof(ObjectType),
+            [typeof(DateTime)] = typeof(DateType)
         };
 
         private readonly MappingSettings _mappingSettings;
@@ -37,19 +54,35 @@ namespace Antianeira.MetadataReader
             _mappingSettings = mappingSettings;
         }
 
-        public PropertyType GetPropertyType(Type propertyType, Definitions definitions)
+        public TypeReference GetPropertyType([NotNull] Type type, [NotNull] PropertyTypeContext context)
         {
-            var result = ConvertPropertyType(propertyType, definitions);
-            result.IsOptional = result.IsNullable = IsOptional(propertyType);
+            var result = ConvertPropertyType(type, context);
+            result.IsOptional = result.IsNullable = IsOptional(type, context);
 
             return result;
         }
 
-        private PropertyType ConvertPropertyType(Type propertyType, Definitions definitions)
+        private TypeReference ConvertPropertyType(Type propertyType, [NotNull] PropertyTypeContext context)
         {
+            if (propertyType.IsGenericParameter && context.GenericParameters != null)
+            {
+                var genericParam = context.GenericParameters.FirstOrDefault(gp => gp.Name == propertyType.Name);
+
+                return new GenericType
+                {
+                    GenericParameter = genericParam
+                };
+            }
+
+            var nullableType = Nullable.GetUnderlyingType(propertyType);
+            if (nullableType != null)
+            {
+                propertyType = nullableType;
+            }
+
             if (Types.TryGetValue(propertyType, out Type type))
             {
-                return (PropertyType)Activator.CreateInstance(type);
+                return (TypeReference)Activator.CreateInstance(type);
             }
 
             var dictionary = (from @interface in propertyType.GetInterfaces()
@@ -58,8 +91,8 @@ namespace Antianeira.MetadataReader
                               select @interface).FirstOrDefault();
             if (dictionary != null)
             {
-                var key = GetPropertyType(dictionary.GenericTypeArguments[0], definitions);
-                var value = GetPropertyType(dictionary.GenericTypeArguments[1], definitions);
+                var key = GetPropertyType(dictionary.GenericTypeArguments[0], context);
+                var value = GetPropertyType(dictionary.GenericTypeArguments[1], context);
 
                 if (key is NumberType || key is StringType)
                 {
@@ -79,25 +112,40 @@ namespace Antianeira.MetadataReader
             {
                 return new ArrayType
                 {
-                    Type = GetPropertyType(enumerable.GenericTypeArguments[0], definitions)
+                    Type = GetPropertyType(enumerable.GenericTypeArguments[0], context)
                 };
             }
 
-            var tsType = _mappingSettings.DefinitionsMapper.ConvertType(propertyType.GetTypeInfo(), definitions);
+            var tsType = _mappingSettings.DefinitionsMapper.ConvertType(propertyType.GetTypeInfo(), context.Definitions);
 
             if (tsType != null)
             {
-                return new CustomType
+                var custom = new CustomType
                 {
                     Type = tsType
                 };
+
+                foreach (var generic in propertyType.GetGenericArguments())
+                {
+                    custom.GenericArguments.Add(GetPropertyType(generic, context));
+                }
+
+                return custom;
             }
 
             return new AnyType();
         }
 
-        protected virtual bool IsOptional(Type propertyType) {
-            return propertyType.GetTypeInfo().GetCustomAttribute<CanBeNullAttribute>() != null;
+        protected virtual bool IsOptional([NotNull] Type type, [NotNull] PropertyTypeContext context) {
+            if (context.PropertyInfo != null)
+            {
+                if (type.IsGenericParameter) {
+                    return context.PropertyInfo.GetCustomAttribute<ItemCanBeNullAttribute>() != null;
+                }
+                return context.PropertyInfo.GetCustomAttribute<CanBeNullAttribute>() != null;
+            }
+
+            return Nullable.GetUnderlyingType(type) != null;
         }
     }
 }

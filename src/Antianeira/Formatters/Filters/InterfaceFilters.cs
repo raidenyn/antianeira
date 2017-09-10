@@ -25,6 +25,10 @@ namespace Antianeira.Formatters.Filters
 
             sb.Append(@interface.Name);
 
+            if (@interface.Generics.Any()) {
+                sb.Append($"<{String.Join(", ", @interface.Generics.Select(g=>g.Name))}>");
+            }
+
             if (@interface.Interfaces.Any())
             {
                 sb.Append(" extends ").Append(String.Join(", ", @interface.Interfaces.Select(i => i.Name)));
