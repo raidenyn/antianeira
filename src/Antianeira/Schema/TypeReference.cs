@@ -1,6 +1,7 @@
 ﻿using DotLiquid;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Antianeira.Schema
 {
@@ -88,7 +89,7 @@ namespace Antianeira.Schema
             {
                 var name = Type.Name;
                 if (GenericArguments.Count > 0) {
-                    name += $"<{String.Join(", ", GenericArguments)}>";
+                    name += $"<{String.Join(", ", GenericArguments.Select(g=>g.WriteToString()))}>";
                 }
                 return name;
             }

@@ -63,7 +63,7 @@ namespace Antianeira.MetadataReader
 
             foreach (var basedType in basedTypes)
             {
-                var typeRef = _mappingSettings.PropertyTypeMapper.GetPropertyType(basedType.GetTypeInfo(), new TypeReferenceContext(definitions));
+                var typeRef = _mappingSettings.TypeReferenceMapper.GetTypeReference(basedType.GetTypeInfo(), new TypeReferenceContext(definitions));
                 @interface.Interfaces.Add(typeRef);
             }
 
@@ -91,7 +91,7 @@ namespace Antianeira.MetadataReader
 
             return new InterfaceProperty(name)
             {
-                Type = _mappingSettings.PropertyTypeMapper.GetPropertyType(property.PropertyType, new TypeReferenceContext(definitions) { PropertyInfo = property, GenericParameters = generics }),
+                Type = _mappingSettings.TypeReferenceMapper.GetTypeReference(property.PropertyType, new TypeReferenceContext(definitions) { PropertyInfo = property, GenericParameters = generics }),
                 Comment = _mappingSettings.CommentsProvider.GetComment(declaringType, property)
             };
         }

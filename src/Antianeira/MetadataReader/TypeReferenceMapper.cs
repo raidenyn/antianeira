@@ -9,7 +9,7 @@ namespace Antianeira.MetadataReader
 {
     public interface ITypeReferenceMapper
     {
-        TypeReference GetPropertyType([NotNull] Type type, [NotNull] TypeReferenceContext context);
+        TypeReference GetTypeReference([NotNull] Type type, [NotNull] TypeReferenceContext context);
     }
 
     public class TypeReferenceContext {
@@ -54,7 +54,7 @@ namespace Antianeira.MetadataReader
             _mappingSettings = mappingSettings;
         }
 
-        public TypeReference GetPropertyType([NotNull] Type type, [NotNull] TypeReferenceContext context)
+        public TypeReference GetTypeReference([NotNull] Type type, [NotNull] TypeReferenceContext context)
         {
             var result = ConvertPropertyType(type, context);
             result.IsOptional = result.IsNullable = IsOptional(type, context);
@@ -63,6 +63,34 @@ namespace Antianeira.MetadataReader
         }
 
         private TypeReference ConvertPropertyType(Type propertyType, [NotNull] TypeReferenceContext context)
+        {
+            var nullableType = Nullable.GetUnderlyingType(propertyType);
+            if (nullableType != null)
+            {
+                propertyType = nullableType;
+            }
+
+            return    AsGeneric(propertyType, context)
+                   ?? AsValue(propertyType, context)
+                   ?? AsDictionary(propertyType, context)
+                   ?? AsArray(propertyType, context)
+                   ?? AsCustom(propertyType, context)
+                   ?? new AnyType();
+        }
+
+        [CanBeNull]
+        private TypeReference AsValue(Type propertyType, [NotNull] TypeReferenceContext context)
+        {
+            if (Types.TryGetValue(propertyType, out Type type))
+            {
+                return (TypeReference)Activator.CreateInstance(type);
+            }
+
+            return null;
+        }
+
+        [CanBeNull]
+        private TypeReference AsGeneric(Type propertyType, [NotNull] TypeReferenceContext context)
         {
             if (propertyType.IsGenericParameter && context.GenericParameters != null)
             {
@@ -74,48 +102,56 @@ namespace Antianeira.MetadataReader
                 };
             }
 
-            var nullableType = Nullable.GetUnderlyingType(propertyType);
-            if (nullableType != null)
-            {
-                propertyType = nullableType;
-            }
+            return null;
+        }
 
-            if (Types.TryGetValue(propertyType, out Type type))
-            {
-                return (TypeReference)Activator.CreateInstance(type);
-            }
-
-            var dictionary = (from @interface in propertyType.GetInterfaces()
-                              where @interface.GetTypeInfo().IsGenericType
-                                    && typeof(IDictionary<,>) == @interface.GetGenericTypeDefinition()
-                              select @interface).FirstOrDefault();
-            if (dictionary != null)
-            {
-                var key = GetPropertyType(dictionary.GenericTypeArguments[0], context);
-                var value = GetPropertyType(dictionary.GenericTypeArguments[1], context);
-
-                if (key is NumberType || key is StringType)
-                {
-                    return new DictionaryType
-                    {
-                        Key = key,
-                        Value = value
-                    };
-                }
-            }
-
+        [CanBeNull]
+        private TypeReference AsArray(Type propertyType, [NotNull] TypeReferenceContext context) {
             var enumerable = (from @interface in propertyType.GetInterfaces()
                               where @interface.GetTypeInfo().IsGenericType
                                     && typeof(IEnumerable<>) == @interface.GetGenericTypeDefinition()
                               select @interface).FirstOrDefault();
-            if (enumerable != null)
+            if (enumerable == null)
             {
-                return new ArrayType
-                {
-                    Type = GetPropertyType(enumerable.GenericTypeArguments[0], context)
-                };
+                return null;
             }
 
+            return new ArrayType
+            {
+                Type = GetTypeReference(enumerable.GenericTypeArguments[0], context)
+            };
+        }
+
+        [CanBeNull]
+        private TypeReference AsDictionary(Type propertyType, [NotNull] TypeReferenceContext context)
+        {
+            var dictionary = (from @interface in propertyType.GetInterfaces()
+                              where @interface.GetTypeInfo().IsGenericType
+                                    && typeof(IDictionary<,>) == @interface.GetGenericTypeDefinition()
+                              select @interface).FirstOrDefault();
+            if (dictionary == null)
+            {
+                return null;
+            }
+
+            var key = GetTypeReference(dictionary.GenericTypeArguments[0], context);
+            var value = GetTypeReference(dictionary.GenericTypeArguments[1], context);
+
+            if (!(key is NumberType) && !(key is StringType))
+            {
+                return null;
+            }
+
+            return new DictionaryType
+            {
+                Key = key,
+                Value = value
+            };
+        }
+
+        [CanBeNull]
+        private TypeReference AsCustom(Type propertyType, [NotNull] TypeReferenceContext context)
+        {
             var tsType = _mappingSettings.DefinitionsMapper.ConvertType(propertyType.GetTypeInfo(), context.Definitions);
 
             if (tsType != null)
@@ -127,13 +163,13 @@ namespace Antianeira.MetadataReader
 
                 foreach (var generic in propertyType.GetGenericArguments())
                 {
-                    custom.GenericArguments.Add(GetPropertyType(generic, context));
+                    custom.GenericArguments.Add(GetTypeReference(generic, context));
                 }
 
                 return custom;
             }
 
-            return new AnyType();
+            return null;
         }
 
         protected virtual bool IsOptional([NotNull] Type type, [NotNull] TypeReferenceContext context) {
