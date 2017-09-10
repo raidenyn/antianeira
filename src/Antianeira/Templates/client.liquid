@@ -1,14 +1,31 @@
-﻿{{ client.comment | comment }}
+﻿{{ client.comment }}
 @Injectable()
-{{ client | class }}
+export class {{ client.name }}
 {
 constructor(
 	@Inject(HttpClientUtils) private _httpClientUtils: HttpClientUtils
-) {
-	{% if client.base_type %}
-    super();
-	{% endif %}
+) { }
+
+{% for method in client.methods %}
+
+{{ method.comment }}
+public {{ method.name }}({% if method.has_arguments %}request: {{ method | request }}{% endif %}): Observable<{{ method | response }}> {
+	const url: string = '{{ method | url }}';
+
+	const options = {
+		{% if method.has_arguments %}
+			{% if method.has_body %}
+			body: request,
+			{% endif %}
+			{% if method.has_params %}
+			params: request,
+			{% endif %}
+		{% endif %}
+		method: '{{ method | method }}'
+	};
+
+	return this._httpClientUtils.ajax(url, options);
 }
 
-{{ client | methods }}
+{% endfor %}
 }

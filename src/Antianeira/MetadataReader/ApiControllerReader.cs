@@ -97,7 +97,7 @@ namespace Antianeira.MetadataReader
             {
                 method.Request = new MethodRequest
                 {
-                    Type = _settings.PropertyTypeMapper.GetPropertyType(bodyParameter.Type.GetTypeInfo(), new PropertyTypeContext(definitions))
+                    Type = _settings.PropertyTypeMapper.GetPropertyType(bodyParameter.Type.GetTypeInfo(), new TypeReferenceContext(definitions))
                 };
             }
 
@@ -123,7 +123,7 @@ namespace Antianeira.MetadataReader
                         {
                             var property = new InterfaceProperty(param.Name)
                             {
-                                Type = _settings.PropertyTypeMapper.GetPropertyType(param.Type.GetTypeInfo(), new PropertyTypeContext(definitions))
+                                Type = _settings.PropertyTypeMapper.GetPropertyType(param.Type.GetTypeInfo(), new TypeReferenceContext(definitions))
                             };
 
                             @interface.Properties.Add(property);
@@ -138,7 +138,7 @@ namespace Antianeira.MetadataReader
             if (returnType != null) {
                 method.Response = new MethodResponse
                 {
-                    Type = _settings.PropertyTypeMapper.GetPropertyType(returnType.GetTypeInfo(), new PropertyTypeContext(definitions))
+                    Type = _settings.PropertyTypeMapper.GetPropertyType(returnType.GetTypeInfo(), new TypeReferenceContext(definitions))
                 };
             }
 

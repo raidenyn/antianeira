@@ -6,14 +6,14 @@ namespace Antianeira.MetadataReader
     {
         public MappingSettings() {
             DefinitionsMapper = new DefinitionsMapper(this);
-            PropertyTypeMapper = new PropertyTypeMapper(this);
+            PropertyTypeMapper = new TypeReferenceMapper(this);
         }
 
         [NotNull]
         public IDefinitionsMapper DefinitionsMapper { get; set; }
 
         [NotNull]
-        public IPropertyTypeMapper PropertyTypeMapper { get; set; }
+        public ITypeReferenceMapper PropertyTypeMapper { get; set; }
 
         [NotNull]
         public IInterfaceNameMapper InterfaceNameMapper { get; set; } = new InterfaceNameMapper();

@@ -12,7 +12,7 @@ namespace Antianeira.Schema
         public IList<GenericParameter> Generics { get; } = new List<GenericParameter>();
 
         [NotNull]
-        public ICollection<Interface> Interfaces { get; } = new List<Interface>();
+        public ICollection<TypeReference> Interfaces { get; } = new List<TypeReference>();
 
         [NotNull]
         public ICollection<InterfaceProperty> Properties { get; } = new List<InterfaceProperty>();

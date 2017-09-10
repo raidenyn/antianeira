@@ -7,13 +7,13 @@ using JetBrains.Annotations;
 
 namespace Antianeira.MetadataReader
 {
-    public interface IPropertyTypeMapper
+    public interface ITypeReferenceMapper
     {
-        TypeReference GetPropertyType([NotNull] Type type, [NotNull] PropertyTypeContext context);
+        TypeReference GetPropertyType([NotNull] Type type, [NotNull] TypeReferenceContext context);
     }
 
-    public class PropertyTypeContext {
-        public PropertyTypeContext(Definitions definitions)
+    public class TypeReferenceContext {
+        public TypeReferenceContext(Definitions definitions)
         {
             Definitions = definitions;
         }
@@ -28,7 +28,7 @@ namespace Antianeira.MetadataReader
         public PropertyInfo PropertyInfo { get; set; }
     }
 
-    internal class PropertyTypeMapper : IPropertyTypeMapper
+    internal class TypeReferenceMapper : ITypeReferenceMapper
     {
         private static readonly IDictionary<Type, Type> Types = new Dictionary<Type, Type>
         {
@@ -47,14 +47,14 @@ namespace Antianeira.MetadataReader
 
         private readonly MappingSettings _mappingSettings;
 
-        public PropertyTypeMapper(
+        public TypeReferenceMapper(
             MappingSettings mappingSettings
         )
         {
             _mappingSettings = mappingSettings;
         }
 
-        public TypeReference GetPropertyType([NotNull] Type type, [NotNull] PropertyTypeContext context)
+        public TypeReference GetPropertyType([NotNull] Type type, [NotNull] TypeReferenceContext context)
         {
             var result = ConvertPropertyType(type, context);
             result.IsOptional = result.IsNullable = IsOptional(type, context);
@@ -62,7 +62,7 @@ namespace Antianeira.MetadataReader
             return result;
         }
 
-        private TypeReference ConvertPropertyType(Type propertyType, [NotNull] PropertyTypeContext context)
+        private TypeReference ConvertPropertyType(Type propertyType, [NotNull] TypeReferenceContext context)
         {
             if (propertyType.IsGenericParameter && context.GenericParameters != null)
             {
@@ -136,7 +136,7 @@ namespace Antianeira.MetadataReader
             return new AnyType();
         }
 
-        protected virtual bool IsOptional([NotNull] Type type, [NotNull] PropertyTypeContext context) {
+        protected virtual bool IsOptional([NotNull] Type type, [NotNull] TypeReferenceContext context) {
             if (context.PropertyInfo != null)
             {
                 if (type.IsGenericParameter) {

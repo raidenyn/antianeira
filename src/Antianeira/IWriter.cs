@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace Antianeira
 {
@@ -23,6 +24,31 @@ namespace Antianeira
                 writable.Write(writer);
             }
             return writer;
+        }
+
+        public static string WriteToString(this IWritable writable)
+        {
+            var writer = new StringWriter();
+
+            writable.Write(writer);
+
+            return writer.ToString();
+        }
+    }
+
+    public class StringWriter : IWriter
+    {
+        private readonly StringBuilder _sb = new StringBuilder();
+
+        public IWriter Append(string text)
+        {
+            _sb.Append(text);
+            return this;
+        }
+
+        public override string ToString()
+        {
+            return _sb.ToString();
         }
     }
 }

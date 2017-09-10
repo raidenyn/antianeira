@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Antianeira.Schema
 {
-    public abstract class TypeReference : Drop
+    public abstract class TypeReference : Drop, IWritable
     {
         public abstract string Name { get; }
 

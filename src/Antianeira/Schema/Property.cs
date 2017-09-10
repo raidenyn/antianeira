@@ -82,7 +82,7 @@ namespace Antianeira.Schema
 
             writer.Append(": ");
             Type.Write(writer);
-            writer.Append(";");
+            writer.Append(";\n");
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Antianeira.Schema
         { }
 
         [CanBeNull]
-        public Class BaseClass { get; set; }
+        public TypeReference BaseClass { get; set; }
 
         public bool IsAbstract { get; set; }
 
@@ -20,7 +20,7 @@ namespace Antianeira.Schema
         public ICollection<GenericParameter> Generics { get; } = new List<GenericParameter>();
 
         [NotNull]
-        public ICollection<Interface> Interfaces { get; } = new List<Interface>();
+        public ICollection<TypeReference> Interfaces { get; } = new List<TypeReference>();
 
         [NotNull]
         public ICollection<ClassProperty> Properties { get; } = new List<ClassProperty>();

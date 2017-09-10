@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
-using System.Text;
 using System;
+using System.Linq;
 
 namespace Antianeira.Schema
 {
@@ -21,7 +21,9 @@ namespace Antianeira.Schema
             writer.Append(Name);
             writer.Append(" = ");
 
-            writer.Append(String.Join(", ", Types));
+            writer.Append(String.Join(" | ", Types.Select(t => "'" + t + "'")));
+
+            writer.Append(";\n");
         }
     }
 }

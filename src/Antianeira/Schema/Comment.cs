@@ -19,5 +19,10 @@ namespace Antianeira.Schema
 
             writer.Append("\n */\n");
         }
+
+        public override string ToString()
+        {
+            return this.WriteToString();
+        }
     }
 }

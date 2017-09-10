@@ -56,15 +56,18 @@ namespace Antianeira.MetadataReader
 
             var basedTypes = new[] { type.BaseType }.Concat(type.ImplementedInterfaces).Where(AllowedType);
 
-            var interfaces = definitions.Interfaces.AppendList(basedTypes, _mappingSettings.InterfaceNameMapper.GetInterfaceName, (n, t) => GetInterface(definitions, n, t.GetTypeInfo()));
-
             foreach (var generic in type.GetGenericArguments())
             {
                 @interface.Generics.Add(new GenericParameter(generic.Name));
             }
 
+            foreach (var basedType in basedTypes)
+            {
+                var typeRef = _mappingSettings.PropertyTypeMapper.GetPropertyType(basedType.GetTypeInfo(), new TypeReferenceContext(definitions));
+                @interface.Interfaces.Add(typeRef);
+            }
+
             @interface.IsExported = true;
-            @interface.Interfaces.AddRange(interfaces);
             @interface.Comment = _mappingSettings.CommentsProvider.GetComment(type);
             @interface.Properties.AddRange(from propertyInfo in type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance)
                                            let property = GetProperty(definitions, @interface.Generics, propertyInfo)
@@ -88,7 +91,7 @@ namespace Antianeira.MetadataReader
 
             return new InterfaceProperty(name)
             {
-                Type = _mappingSettings.PropertyTypeMapper.GetPropertyType(property.PropertyType, new PropertyTypeContext(definitions) { PropertyInfo = property, GenericParameters = generics }),
+                Type = _mappingSettings.PropertyTypeMapper.GetPropertyType(property.PropertyType, new TypeReferenceContext(definitions) { PropertyInfo = property, GenericParameters = generics }),
                 Comment = _mappingSettings.CommentsProvider.GetComment(declaringType, property)
             };
         }

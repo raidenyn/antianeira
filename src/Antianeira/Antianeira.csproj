@@ -16,24 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Templates\class.liquid" />
-    <None Remove="Templates\client_method.liquid" />
-    <None Remove="Templates\interface_method_parameter.liquid" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Templates\client.liquid" />
-    <EmbeddedResource Include="Templates\client_method.liquid" />
     <EmbeddedResource Include="Templates\definitions.liquid" />
-    <EmbeddedResource Include="Templates\enum_field.liquid" />
-    <EmbeddedResource Include="Templates\interface_method.liquid" />
-    <EmbeddedResource Include="Templates\interface_method_parameter.liquid" />
-    <EmbeddedResource Include="Templates\property.liquid" />
-    <EmbeddedResource Include="Templates\type.liquid" />
-    <EmbeddedResource Include="Templates\enum.liquid" />
-    <EmbeddedResource Include="Templates\comment.liquid" />
-    <EmbeddedResource Include="Templates\interface.liquid" />
-    <EmbeddedResource Include="Templates\class.liquid" />
   </ItemGroup>
 
   <ItemGroup>
