@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Antianeira.Schema.Api
+namespace Antianeira.Schema
 {
     public class ServiceClient: Class
     {

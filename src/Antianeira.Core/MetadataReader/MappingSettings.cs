@@ -29,5 +29,8 @@ namespace Antianeira.MetadataReader
 
         [NotNull]
         public IMethodNameMapper MethodNameMapper { get; set; } = new CamelCaseMethodName();
+
+        [NotNull]
+        public IOptionalStrategy OptionalStrategy { get; set; } = new JetBrainsAttributeOptionalStrategy();
     }
 }

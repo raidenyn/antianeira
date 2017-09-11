@@ -1,5 +1,4 @@
 ﻿using Antianeira.Schema;
-using Antianeira.Schema.Api;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -22,7 +21,7 @@ namespace Antianeira.MetadataReader
         }
 
         [NotNull]
-        public void Read([NotNull] Assembly assembly, Definitions definitions, ApiControllerLoaderOptions options = null) {
+        public void Read([NotNull] Assembly assembly, [NotNull] Services serivces, ApiControllerLoaderOptions options = null) {
             options = options ?? new ApiControllerLoaderOptions();
 
             var controllers = from type in assembly.GetTypes()
@@ -31,12 +30,12 @@ namespace Antianeira.MetadataReader
                               select type;
 
             foreach (var controller in controllers) {
-                AddController(controller, definitions);
+                AddController(controller, serivces);
             }
         }
 
         [NotNull]
-        public void AddController([NotNull] Type controller, [NotNull] Definitions definitions)
+        public void AddController([NotNull] Type controller, [NotNull] Services serivces)
         {
             var name = controller.Name.Replace("Controller", "Client");
 
@@ -48,7 +47,7 @@ namespace Antianeira.MetadataReader
                 return;
             }
 
-            definitions.ServiceClients.GetOrCreate(name, () => {
+            serivces.Clients.GetOrCreate(name, () => {
                 var client = new ServiceClient(name)
                 {
                     IsExported = true
@@ -56,7 +55,7 @@ namespace Antianeira.MetadataReader
 
                 foreach (var methodInfo in methods)
                 {
-                    var method = GetMethod(methodInfo, client, definitions);
+                    var method = GetMethod(methodInfo, client, serivces);
 
                     if (method != null) {
                         client.Methods.Add(method);
@@ -68,7 +67,7 @@ namespace Antianeira.MetadataReader
         }
 
         [CanBeNull]
-        private Method GetMethod([NotNull] MethodInfo methodInfo, [NotNull] ServiceClient client, [NotNull] Definitions definitions)
+        private Method GetMethod([NotNull] MethodInfo methodInfo, [NotNull] ServiceClient client, [NotNull] Services serivces)
         {
             var method = new Method
             {
@@ -97,7 +96,7 @@ namespace Antianeira.MetadataReader
             {
                 method.Request = new MethodRequest
                 {
-                    Type = _settings.TypeReferenceMapper.GetTypeReference(bodyParameter.Type.GetTypeInfo(), new TypeReferenceContext(definitions))
+                    Type = _settings.TypeReferenceMapper.GetTypeReference(bodyParameter.Type.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
                 };
             }
 
@@ -108,12 +107,12 @@ namespace Antianeira.MetadataReader
 
                 if (structureParam != null)
                 {
-                    method.Url.Parameters.Structure = _settings.DefinitionsMapper.ConvertType(structureParam.Type.GetTypeInfo(), definitions);
+                    method.Url.Parameters.Structure = _settings.DefinitionsMapper.ConvertType(structureParam.Type.GetTypeInfo(), serivces.Definitions);
                 }
                 else {
                     var singleParameters = queryParameters;
                     var name = "I" + client.Name + methodInfo.Name + "Request";
-                    method.Url.Parameters.Structure = definitions.Interfaces.GetOrCreate(name, () => {
+                    method.Url.Parameters.Structure = serivces.Definitions.Interfaces.GetOrCreate(name, () => {
                         var @interface = new Interface(name)
                         {
                             IsExported = true
@@ -123,7 +122,7 @@ namespace Antianeira.MetadataReader
                         {
                             var property = new InterfaceProperty(param.Name)
                             {
-                                Type = _settings.TypeReferenceMapper.GetTypeReference(param.Type.GetTypeInfo(), new TypeReferenceContext(definitions))
+                                Type = _settings.TypeReferenceMapper.GetTypeReference(param.Type.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
                             };
 
                             @interface.Properties.Add(property);
@@ -138,7 +137,7 @@ namespace Antianeira.MetadataReader
             if (returnType != null) {
                 method.Response = new MethodResponse
                 {
-                    Type = _settings.TypeReferenceMapper.GetTypeReference(returnType.GetTypeInfo(), new TypeReferenceContext(definitions))
+                    Type = _settings.TypeReferenceMapper.GetTypeReference(returnType.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
                 };
             }
 

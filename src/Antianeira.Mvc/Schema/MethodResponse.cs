@@ -1,7 +1,7 @@
 ﻿using DotLiquid;
 using JetBrains.Annotations;
 
-namespace Antianeira.Schema.Api
+namespace Antianeira.Schema
 {
     public class MethodResponse : Drop
     {

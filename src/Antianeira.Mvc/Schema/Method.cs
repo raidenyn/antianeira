@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using System.Net.Http;
 
-namespace Antianeira.Schema.Api
+namespace Antianeira.Schema
 {
     public class Method: Drop
     {

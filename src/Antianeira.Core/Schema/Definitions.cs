@@ -38,8 +38,4 @@ namespace Antianeira.Schema
     public class TypeRepository : Repository<TypeDefinition>
     {
     }
-
-    public class ServiceClientRepository : Repository<ServiceClient>
-    {
-    }
 }

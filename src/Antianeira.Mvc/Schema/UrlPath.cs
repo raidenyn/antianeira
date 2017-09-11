@@ -1,7 +1,6 @@
 ﻿using DotLiquid;
-using System.Collections.Generic;
 
-namespace Antianeira.Schema.Api
+namespace Antianeira.Schema
 {
     public class MethodUrl : Drop
     {

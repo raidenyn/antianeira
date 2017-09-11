@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antianeira", "Antianeira\Antianeira.csproj", "{CE2EAD60-C26D-47E4-97B8-8BA317211D2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Antianeira.Dto", "Antianeira.Core\Antianeira.Dto.csproj", "{12F4B8A4-FEC7-48EA-9AC7-969A3C7D4B48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Antianeira.Mvc", "Antianeira.Mvc\Antianeira.Mvc.csproj", "{23EE1EA8-E261-4737-940A-4400B6BD8F32}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{CE2EAD60-C26D-47E4-97B8-8BA317211D2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE2EAD60-C26D-47E4-97B8-8BA317211D2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE2EAD60-C26D-47E4-97B8-8BA317211D2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12F4B8A4-FEC7-48EA-9AC7-969A3C7D4B48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12F4B8A4-FEC7-48EA-9AC7-969A3C7D4B48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12F4B8A4-FEC7-48EA-9AC7-969A3C7D4B48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12F4B8A4-FEC7-48EA-9AC7-969A3C7D4B48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23EE1EA8-E261-4737-940A-4400B6BD8F32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23EE1EA8-E261-4737-940A-4400B6BD8F32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23EE1EA8-E261-4737-940A-4400B6BD8F32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23EE1EA8-E261-4737-940A-4400B6BD8F32}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

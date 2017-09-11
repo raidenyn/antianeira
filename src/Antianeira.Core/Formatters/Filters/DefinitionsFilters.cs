@@ -53,15 +53,5 @@ namespace Antianeira.Formatters.Filters
 
             return writer.ToString();
         }
-
-        public static string Clients(Definitions @definitions)
-        {
-            return FormatterTemplates.Current.RenderMany(@definitions.ServiceClients);
-        }
-
-        public static string Names(IEnumerable<ITsType> types)
-        {
-            return String.Join(",\n", types.Select(t => t.Name));
-        }
     }
 }

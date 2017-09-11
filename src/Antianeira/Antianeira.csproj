@@ -16,16 +16,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Templates\client.liquid" />
-    <EmbeddedResource Include="Templates\definitions.liquid" />
+    <PackageReference Include="JetBrains.Annotations" Version="11.0.0" />
+    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotLiquid" Version="2.0.180" />
-    <PackageReference Include="Glob" Version="0.3.4" />
-    <PackageReference Include="JetBrains.Annotations" Version="11.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
+    <ProjectReference Include="..\Antianeira.Core\Antianeira.Dto.csproj" />
+    <ProjectReference Include="..\Antianeira.Mvc\Antianeira.Mvc.csproj" />
   </ItemGroup>
 
 </Project>

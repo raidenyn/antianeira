@@ -1,6 +1,6 @@
 ﻿using DotLiquid;
 
-namespace Antianeira.Schema.Api
+namespace Antianeira.Schema
 {
     public class MethodRequest : Drop
     {
