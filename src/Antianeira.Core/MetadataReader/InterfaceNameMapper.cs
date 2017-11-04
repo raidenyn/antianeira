@@ -7,21 +7,24 @@ namespace Antianeira.MetadataReader
         string GetInterfaceName(Type type);
     }
 
-    public class InterfaceNameMapper : IInterfaceNameMapper
+    public class DefaultInterfaceNameMapper : IInterfaceNameMapper
     {
         public string GetInterfaceName(Type type)
         {
             var name = type.Name;
 
-            if (type.IsGenericType) {
+            if (type.IsGenericType)
+            {
                 name = name.Substring(0, name.IndexOf('`'));
             }
 
-            if (name[0] != 'I') {
+            if (name[0] != 'I')
+            {
                 return "I" + name;
             }
 
-            if (name.Length > 1) {
+            if (name.Length > 1)
+            {
                 var secondVar = name[1].ToString();
                 if (secondVar != secondVar.ToUpper())
                 {

@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Antianeira.Schema
 {
-    public class Interface : TsType, IWritable
+    public class Interface : TsType
     {
         public Interface(string name): base(name)
         { }

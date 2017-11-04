@@ -22,6 +22,7 @@ namespace Antianeira
                     writer.Append(separator);
                 }
                 writable.Write(writer);
+                counter++;
             }
             return writer;
         }

@@ -10,16 +10,16 @@ import { HttpClientUtils } from './http-client-utils';
 import { Injectable, Inject } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
-{{ definitions | types }}
+{{ services.definitions | types }}
 
-{{ definitions | enums }}
+{{ services.definitions | enums }}
 
-{{ definitions | interfaces }}
+{{ services.definitions | interfaces }}
 
-{{ definitions | classes }}
+{{ services.definitions | classes }}
 
-{{ definitions | clients }}
+{{ services | clients }}
 
 export const CLIENTS = [ 
-{{ definitions.service_clients | names }} 
+{{ services | names }} 
 ];

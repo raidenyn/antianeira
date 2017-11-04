@@ -1,14 +1,15 @@
 ﻿using Antianeira.Utils;
+using DotLiquid;
 using JetBrains.Annotations;
 
 namespace Antianeira.Schema
 {
-    public class Services
+    public class ServicesDefinitions: Drop
     {
         [NotNull]
         public Definitions Definitions { get; } = new Definitions();
 
         [NotNull]
-        public Repository<ServiceClient> Clients { get; } = new Repository<ServiceClient>();
+        public Repository<Service> Services { get; } = new Repository<Service>();
     }
 }

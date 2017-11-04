@@ -8,20 +8,38 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using Antianeira.Schema.MethodUrl;
 
 namespace Antianeira.MetadataReader
 {
-    public class ApiControllerLoader
+    public interface IApiControllerReader
     {
-        private readonly MappingSettings _settings;
+        void Read([NotNull] Assembly assembly, [NotNull] ServicesDefinitions serivces, ApiControllerLoaderOptions options = null);
+    }
 
-        public ApiControllerLoader(MappingSettings settings = null)
-        {
-            _settings = settings ?? new MappingSettings();
+    public class ApiControllerReader: IApiControllerReader
+    {
+        private readonly IMethodNameMapper _methodNameMapper;
+        private readonly IPropertyTypeMapper _propertyTypeMapper;
+        private readonly ITypeReferenceMapper _typeReferenceMapper;
+        private readonly IMethodUrlMapper _methodUrlMapper;
+        private readonly IHttpMethodMapper _httpMethodMapper;
+
+        public ApiControllerReader(
+            IMethodNameMapper methodNameMapper,
+            IPropertyTypeMapper propertyTypeMapper,
+            ITypeReferenceMapper typeReferenceMapper,
+            IMethodUrlMapper methodUrlMapper,
+            IHttpMethodMapper httpMethodMapper
+        ) {
+            _methodNameMapper = methodNameMapper;
+            _propertyTypeMapper = propertyTypeMapper;
+            _typeReferenceMapper = typeReferenceMapper;
+            _methodUrlMapper = methodUrlMapper;
+            _httpMethodMapper = httpMethodMapper;
         }
 
-        [NotNull]
-        public void Read([NotNull] Assembly assembly, [NotNull] Services serivces, ApiControllerLoaderOptions options = null) {
+        public void Read(Assembly assembly, ServicesDefinitions definitions, ApiControllerLoaderOptions options = null) {
             options = options ?? new ApiControllerLoaderOptions();
 
             var controllers = from type in assembly.GetTypes()
@@ -30,12 +48,12 @@ namespace Antianeira.MetadataReader
                               select type;
 
             foreach (var controller in controllers) {
-                AddController(controller, serivces);
+                AddController(controller, definitions);
             }
         }
 
         [NotNull]
-        public void AddController([NotNull] Type controller, [NotNull] Services serivces)
+        public void AddController([NotNull] Type controller, [NotNull] ServicesDefinitions definitions)
         {
             var name = controller.Name.Replace("Controller", "Client");
 
@@ -47,47 +65,35 @@ namespace Antianeira.MetadataReader
                 return;
             }
 
-            serivces.Clients.GetOrCreate(name, () => {
-                var client = new ServiceClient(name)
-                {
-                    IsExported = true
-                };
+            definitions.Services.GetOrCreate(name, () =>
+            {
+                var service = new Service(name);
 
                 foreach (var methodInfo in methods)
                 {
-                    var method = GetMethod(methodInfo, client, serivces);
+                    var method = GetMethod(methodInfo, service, definitions);
 
                     if (method != null) {
-                        client.Methods.Add(method);
+                        service.Methods.Add(method);
                     }
                 }
 
-                return client;
+                return service;
             });
         }
 
         [CanBeNull]
-        private Method GetMethod([NotNull] MethodInfo methodInfo, [NotNull] ServiceClient client, [NotNull] Services serivces)
+        private ServiceMethod GetMethod([NotNull] MethodInfo methodInfo, [NotNull] Service client, [NotNull] ServicesDefinitions definitions)
         {
-            var method = new Method
-            {
-                Name = _settings.MethodNameMapper.GetMethodName(methodInfo)
-            };
+            var method = new ServiceMethod(_methodNameMapper.GetMethodName(methodInfo));
 
-            var httpMethodAttr = methodInfo.GetCustomAttribute<HttpMethodAttribute>();
-            method.HttpMethod = new HttpMethod(httpMethodAttr?.HttpMethods.FirstOrDefault() ?? HttpMethod.Get.Method);
+            method.SourceMethod = methodInfo;
 
-            var classRouteAttr = methodInfo.DeclaringType.GetTypeInfo().GetCustomAttribute<RouteAttribute>();
-            var methodRouteAttr = methodInfo.GetCustomAttribute<RouteAttribute>();
+            method.HttpMethod = _httpMethodMapper.MapHttpMethod(methodInfo);
 
-            if (classRouteAttr == null && methodRouteAttr == null) {
-                return null;
-            }
+            method.Url = _methodUrlMapper.MapMethodUrl(methodInfo);
 
-            method.Url = new MethodUrl
-            {
-                Path = classRouteAttr?.Template + "/" + methodRouteAttr?.Template
-            };
+           
 
             var parameters = ParametersReader.ReadFrom(methodInfo);
 
@@ -96,7 +102,7 @@ namespace Antianeira.MetadataReader
             {
                 method.Request = new MethodRequest
                 {
-                    Type = _settings.TypeReferenceMapper.GetTypeReference(bodyParameter.Type.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
+                    Type = _propertyTypeMapper.GetPropertyType(bodyParameter.Type.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
                 };
             }
 
@@ -107,7 +113,7 @@ namespace Antianeira.MetadataReader
 
                 if (structureParam != null)
                 {
-                    method.Url.Parameters.Structure = _settings.DefinitionsMapper.ConvertType(structureParam.Type.GetTypeInfo(), serivces.Definitions);
+                    method.Url.Parameters = _ty.ConvertType(structureParam.Type.GetTypeInfo(), new TypeContext(serivces.Definitions));
                 }
                 else {
                     var singleParameters = queryParameters;
@@ -122,7 +128,7 @@ namespace Antianeira.MetadataReader
                         {
                             var property = new InterfaceProperty(param.Name)
                             {
-                                Type = _settings.TypeReferenceMapper.GetTypeReference(param.Type.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
+                                Type = _propertyTypeMapper.GetPropertyType(param.Type.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
                             };
 
                             @interface.Properties.Add(property);
@@ -137,7 +143,7 @@ namespace Antianeira.MetadataReader
             if (returnType != null) {
                 method.Response = new MethodResponse
                 {
-                    Type = _settings.TypeReferenceMapper.GetTypeReference(returnType.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
+                    Type = _propertyTypeMapper.GetPropertyType(returnType.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
                 };
             }
 

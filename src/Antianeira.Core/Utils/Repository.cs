@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using Antianeira.Schema;
-using System.Reflection;
 
 namespace Antianeira.Utils
 {
     public class Repository<T> : IEnumerable<T>
-        where T: TsType
+        where T: class
     {
         private readonly Dictionary<string, T> _structures = new Dictionary<string, T>();
 
         [NotNull]
-        public T GetOrCreate([NotNull]string name, [NotNull, ItemNotNull] Func<T> creator)
+        public T GetOrCreate([NotNull] string name, [NotNull] Func<T> creator)
         {
             if (!_structures.TryGetValue(name, out var structure))
             {
@@ -55,7 +54,7 @@ namespace Antianeira.Utils
             where T : TsType
         {
             var structure = repo.Find(name);
-            if (EqualityComparer<T>.Default.Equals(structure, default(T)))
+            if (structure == null)
             {
                 throw new KeyNotFoundException(name);
             }
@@ -68,7 +67,7 @@ namespace Antianeira.Utils
             [NotNull] this Repository<TItem> repo,
             [NotNull, ItemNotNull] IEnumerable<TSource> sources,
             [NotNull] Func<TSource, string> namer,
-            [NotNull, ItemNotNull] Func<string, TSource, TItem> creator)
+            [NotNull] Func<string, TSource, TItem> creator)
             where TItem : TsType
         {
             foreach (var source in sources) {

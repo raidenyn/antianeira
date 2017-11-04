@@ -1,8 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
 using Antianeira.Schema;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Antianeira.MetadataReader.TypeConverters
@@ -22,7 +20,7 @@ namespace Antianeira.MetadataReader.TypeConverters
 
         public TypeReference TryConvert([NotNull] Type propertyType, [NotNull] TypeReferenceContext context)
         {
-            var tsType = _definitionsMapper.ConvertType(propertyType.GetTypeInfo(), context.Definitions);
+            var tsType = _definitionsMapper.ConvertType(propertyType.GetTypeInfo(), context.GetTypeContext());
 
             if (tsType != null)
             {

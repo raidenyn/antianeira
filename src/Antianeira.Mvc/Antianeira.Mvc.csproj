@@ -2,17 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>Antianeira</AssemblyName>
+    <AssemblyName>Antianeira.MVC</AssemblyName>
     <RootNamespace>Antianeira</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Templates\client.liquid" />
-    <EmbeddedResource Include="Templates\definitions.liquid" />
+    <EmbeddedResource Include="Templates\services.liquid" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="11.0.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.0" />
   </ItemGroup>
 

@@ -6,7 +6,7 @@ using System.Xml.Linq;
 using Antianeira.Schema;
 using JetBrains.Annotations;
 
-namespace Antianeira.MetadataReader
+namespace Antianeira.MetadataReader.Comments
 {
     internal class AssemblyCommentsLoader
     {

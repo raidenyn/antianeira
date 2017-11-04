@@ -3,9 +3,9 @@ using JetBrains.Annotations;
 
 namespace Antianeira.Schema
 {
-    public class ClassProperty : Drop, IWritable
+    public abstract class Property : Drop, IWritable
     {
-        public ClassProperty(string name)
+        protected Property(string name)
         {
             Name = name;
         }
@@ -14,18 +14,40 @@ namespace Antianeira.Schema
         public string Name { get; set; }
 
         [NotNull]
-        public TypeReference Type { get; set; } = new AnyType();
+        public PropertyType Type { get; set; } = new PropertyType();
+
+        public virtual void Write(IWriter writer)
+        {
+            writer.Append(Name);
+
+            if (Type.IsOptional)
+            {
+                writer.Append("?");
+            }
+
+            writer.Append(": ");
+            Type.Write(writer);
+            writer.Append(";\n");
+        }
+    }
+
+    public class ClassProperty : Property
+    {
+        public ClassProperty(string name): base(name)
+        { }
 
         public PropertyAccessLevel AccessLevel { get; set; }
 
         public bool IsStatic { get; set; }
+
+        public bool IsReadonly { get; set; }
 
         public bool IsAbstract { get; set; }
 
         [CanBeNull]
         public Comment Comment { get; set; }
 
-        public void Write(IWriter writer)
+        public override void Write(IWriter writer)
         {
             Comment?.Write(writer);
 
@@ -41,48 +63,34 @@ namespace Antianeira.Schema
                 }
             }
 
-            writer.Append(Name);
-
-            if (Type.IsOptional) {
-                writer.Append("?");
+            if (IsReadonly) {
+                writer.Append("readonly ");
             }
 
-            writer.Append(": ");
-            Type.Write(writer);
-            writer.Append(";");
+            base.Write(writer);
         }
     }
 
-    public class InterfaceProperty : Drop, IWritable
+    public class InterfaceProperty : Property
     {
-        public InterfaceProperty(string name)
-        {
-            Name = name;
-        }
+        public InterfaceProperty(string name): base(name)
+        { }
 
-        [NotNull]
-        public string Name { get; set; }
-
-        [NotNull]
-        public TypeReference Type { get; set; } = new AnyType();
+        public bool IsReadonly { get; set; }
 
         [CanBeNull]
         public Comment Comment { get; set; }
 
-        public void Write(IWriter writer)
+        public override void Write(IWriter writer)
         {
             Comment?.Write(writer);
 
-            writer.Append(Name);
-
-            if (Type.IsOptional)
+            if (IsReadonly)
             {
-                writer.Append("?");
+                writer.Append("readonly ");
             }
 
-            writer.Append(": ");
-            Type.Write(writer);
-            writer.Append(";\n");
+            base.Write(writer);
         }
     }
 }

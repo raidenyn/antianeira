@@ -7,11 +7,11 @@ using System.Reflection;
 
 namespace Antianeira.MetadataReader.TypeConverters
 {
-    public class DictionayTypeConverter : ITypeConverter
+    public class DictionaryTypeConverter : ITypeConverter
     {
         private readonly ITypeReferenceMapper _typeReferenceMapper;
 
-        public DictionayTypeConverter(
+        public DictionaryTypeConverter(
             ITypeReferenceMapper typeReferenceMapper
         ) {
             _typeReferenceMapper = typeReferenceMapper;

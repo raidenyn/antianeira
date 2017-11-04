@@ -1,7 +1,4 @@
 ﻿using Antianeira.Schema;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Antianeira.Formatters.Filters
 {
@@ -11,9 +8,7 @@ namespace Antianeira.Formatters.Filters
         {
             var writer = new StringWriter();
 
-            foreach (var @class in @definitions.Classes) {
-                @class.Write(writer);
-            }
+            writer.Join("\n\n", @definitions.Classes);
 
             return writer.ToString();
         }
@@ -22,10 +17,7 @@ namespace Antianeira.Formatters.Filters
         {
             var writer = new StringWriter();
 
-            foreach (var @interface in @definitions.Interfaces)
-            {
-                @interface.Write(writer);
-            }
+            writer.Join("\n\n", @definitions.Interfaces);
 
             return writer.ToString();
         }
@@ -34,10 +26,7 @@ namespace Antianeira.Formatters.Filters
         {
             var writer = new StringWriter();
 
-            foreach (var type in @definitions.Types)
-            {
-                type.Write(writer);
-            }
+            writer.Join("\n\n", @definitions.Types);
 
             return writer.ToString();
         }
@@ -46,10 +35,7 @@ namespace Antianeira.Formatters.Filters
         {
             var writer = new StringWriter();
 
-            foreach (var @enum in @definitions.Enums)
-            {
-                @enum.Write(writer);
-            }
+            writer.Join("\n\n", @definitions.Enums);
 
             return writer.ToString();
         }

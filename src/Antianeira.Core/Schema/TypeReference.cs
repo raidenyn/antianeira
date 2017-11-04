@@ -9,10 +9,6 @@ namespace Antianeira.Schema
     {
         public abstract string Name { get; }
 
-        public bool IsNullable { get; set; }
-
-        public bool IsOptional { get; set; }
-
         public void Write(IWriter writer)
         {
             writer.Append(Name);

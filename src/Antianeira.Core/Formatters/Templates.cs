@@ -1,20 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using DotLiquid;
 
-namespace Antianeira.Templates
+namespace Antianeira.Formatters
 {
     public static class Templates
     {
-        private static readonly Assembly Assembly = typeof(Templates).GetTypeInfo().Assembly;
-
-        private static readonly string Namespace = typeof(Templates).Namespace;
-
-        public static string Load(string name)
+        public static string Load(Assembly assembly, string name)
         {
-            var resourceName = $"{Namespace}.{name}.liquid";
-            using (var template = Assembly.GetManifestResourceStream(resourceName))
+            var resourceName = $"Antianeira.Templates.{name}.liquid";
+            using (var template = assembly.GetManifestResourceStream(resourceName))
             {
                 if (template == null)
                 {

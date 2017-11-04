@@ -1,10 +1,11 @@
 ﻿using System;
 using Microsoft.Extensions.CommandLineUtils;
-using Antianeira.Schema;
 using Antianeira.MetadataReader;
 using System.Reflection;
 using System.IO;
+using Antianeira.Schema;
 using Antianeira.Formatters;
+using Autofac;
 
 namespace Antianeira
 {
@@ -53,10 +54,24 @@ namespace Antianeira
             app.Execute(args);
         }
 
-        public static void Generate(string assemblyPath, string outputPath, ApiControllerLoaderOptions options) {
-            var definitions = new Definitions();
+        private static IContainer GetIoCContainer()
+        {
+            var builder = new ContainerBuilder();
+            builder.AddMvcReader();
+            builder.AddMvcFormatter();
 
-            new ApiControllerLoader().Read(Assembly.LoadFrom(assemblyPath), definitions, options);
+            return builder.Build();
+        }
+
+        public static void Generate(string assemblyPath, string outputPath, ApiControllerLoaderOptions options)
+        {
+            var container = GetIoCContainer();
+
+            var reader = container.Resolve<IApiControllerReader>();
+
+            var services = new Services();
+
+            reader.Read(Assembly.LoadFrom(assemblyPath), services, options);
 
             if (String.IsNullOrEmpty(outputPath)) {
                 outputPath = Path.ChangeExtension(assemblyPath, "ts");
@@ -64,7 +79,7 @@ namespace Antianeira
 
             using (var output = new AlignStreamWriter(new FileStream(outputPath, FileMode.Create, FileAccess.Write)))
             {
-                FormatterTemplates.Current.Render(output, definitions);
+                container.Resolve<IFormatterTemplates>().Render(output, services);
             }
         }
     }

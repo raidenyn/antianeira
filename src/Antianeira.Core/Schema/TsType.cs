@@ -3,13 +3,12 @@ using JetBrains.Annotations;
 
 namespace Antianeira.Schema
 {
-    public abstract class TsType : Drop, ITsType
+    public abstract class TsType : Drop, ITsType, IWritable
     {
         protected TsType(string name) {
             Name = name;
         }
 
-        [NotNull]
         public string Name { get; internal set; }
 
         public bool IsExported { get; set; }
