@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
-using Antianeira.Utils;
 using JetBrains.Annotations;
+using Antianeira.Utils;
 
 namespace Antianeira.MetadataReader
 {

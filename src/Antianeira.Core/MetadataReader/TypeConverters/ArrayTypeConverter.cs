@@ -17,7 +17,7 @@ namespace Antianeira.MetadataReader.TypeConverters
             _typeReferenceMapper = typeReferenceMapper;
         }
 
-        public TypeReference TryConvert([NotNull] Type propertyType, [NotNull] TypeReferenceContext context)
+        public TypeReference TryConvert(Type propertyType, TypeReferenceContext context)
         {
             var enumerable = (from @interface in propertyType.GetInterfaces()
                               where @interface.GetTypeInfo().IsGenericType
@@ -28,10 +28,14 @@ namespace Antianeira.MetadataReader.TypeConverters
                 return null;
             }
 
-            return new ArrayType
+            var type = _typeReferenceMapper.GetTypeReference(enumerable.GenericTypeArguments[0], context);
+
+            if (type == null)
             {
-                Type = _typeReferenceMapper.GetTypeReference(enumerable.GenericTypeArguments[0], context)
-            };
+                return null;
+            }
+
+            return new ArrayType(type);
         }
     }
 }

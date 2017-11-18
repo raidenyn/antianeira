@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="AntianeiraProperties">
+    <PropertyGroup>
+      <AntianeiraDotNetSource Condition="'$(AntianeiraDotNetSource)' == ''">$(TargetPath)</AntianeiraDotNetSource>
+      <AntianeiraTypeScriptFile Condition="'$(AntianeiraTypeScriptFile)' == ''">$(ProjectDir)scripts\$(TargetName).ts</AntianeiraTypeScriptFile>
+      <AntianeiraExePath Condition="'$(AntianeiraExePath)' == ''">$(MSBuildThisFileDirectory)..\..\tools\netstandard2.0\Antianeira.dll</AntianeiraExePath>
+    </PropertyGroup>
+  </Target>
+</Project>

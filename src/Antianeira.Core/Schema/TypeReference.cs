@@ -2,16 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace Antianeira.Schema
 {
     public abstract class TypeReference : Drop, IWritable
     {
+        [CanBeNull]
+        public Type Source { get; set; }
+
+        [NotNull]
         public abstract string Name { get; }
 
-        public bool IsNullable { get; set; }
+        [CanBeNull]
+        public abstract bool? IsSimple { get; }
 
-        public bool IsOptional { get; set; }
 
         public void Write(IWriter writer)
         {
@@ -19,46 +24,68 @@ namespace Antianeira.Schema
         }
     }
 
-    public class AnyType : TypeReference
-    {
-        public override string Name { get; } = "any";
-    }
-
     public class VoidType : TypeReference
     {
         public override string Name { get; } = "void";
+
+        public override bool? IsSimple { get; } = true;
+    }
+
+    public class AnyType : TypeReference
+    {
+        public override string Name { get; } = "any";
+
+        public override bool? IsSimple { get; } = null;
     }
 
     public class BooleanType : TypeReference
     {
         public override string Name => "boolean";
+
+        public override bool? IsSimple { get; } = true;
     }
 
     public class StringType : TypeReference
     {
         public override string Name => "string";
+
+        public override bool? IsSimple { get; } = true;
     }
 
     public class NumberType : TypeReference
     {
         public override string Name => "number";
+
+        public override bool? IsSimple { get; } = true;
     }
 
     public class DateType : TypeReference
     {
         public override string Name => "Date";
+
+        public override bool? IsSimple { get; } = true;
     }
 
     public class ObjectType : TypeReference
     {
         public override string Name => "object";
+
+        public override bool? IsSimple { get; } = false;
     }
 
     public class ArrayType : TypeReference
     {
+        public ArrayType([NotNull] TypeReference type)
+        {
+            Type = type;
+        }
+
+        [NotNull]
         public TypeReference Type { get; set; }
 
         public override string Name => Type.Name + "[]";
+
+        public override bool? IsSimple { get; } = false;
     }
 
     public class DictionaryType : TypeReference
@@ -67,6 +94,8 @@ namespace Antianeira.Schema
 
         public TypeReference Value { get; set; }
 
+        public override bool? IsSimple { get; } = false;
+
         public override string Name => $"{{ [key: {Key.Name}]: {Value.Name} }}";
     }
 
@@ -74,14 +103,25 @@ namespace Antianeira.Schema
     {
         public GenericParameter GenericParameter { get; set; }
 
+        public override bool? IsSimple { get; } = null;
+
         public override string Name => GenericParameter.Name;
     }
 
     public class CustomType : TypeReference
     {
+        public CustomType([NotNull] TsType type)
+        {
+            Type = type;
+        }
+
+        [NotNull]
         public TsType Type { get; set; }
 
+        [NotNull, ItemNotNull]
         public IList<TypeReference> GenericArguments { get; } = new List<TypeReference>();
+
+        public override bool? IsSimple { get; } = false;
 
         public override string Name
         {

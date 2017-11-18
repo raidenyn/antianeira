@@ -1,6 +1,6 @@
 ﻿namespace Antianeira.Utils
 {
-    internal static class StringUtils
+    public static class StringUtils
     {
         public static string ToCamelCase(string s)
         {

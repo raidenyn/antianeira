@@ -1,30 +1,27 @@
 ﻿{{ client.comment }}
-@Injectable()
-export class {{ client.name }}
-{
+export class {{ client.name }} {
+
 constructor(
-	@Inject(HttpClientUtils) private _httpClientUtils: HttpClientUtils
+	private readonly _ajax: IHttpAjax
 ) { }
 
 {% for method in client.methods %}
 
 {{ method.comment }}
-public {{ method.name }}({% if method.has_arguments %}request: {{ method | request }}{% endif %}): Observable<{{ method | response }}> {
-	const url: string = '{{ method | url }}';
+public {{ method.name }}({{ method | parameters }}): Promise<{{ method | response }}> {
+	{{ method | url: "url" }}
 
 	const options = {
-		{% if method.has_arguments %}
-			{% if method.has_body %}
-			body: request,
-			{% endif %}
-			{% if method.has_params %}
-			params: request,
-			{% endif %}
+		method: '{{ method | http_method }}',
+		{% if method.has_body %}
+		body: {{ method | body_params_merge }},
 		{% endif %}
-		method: '{{ method | method }}'
+		{% if method.has_dynamic_params %}
+		params: {{ method | dynamic_params }},
+		{% endif %}		
 	};
 
-	return this._httpClientUtils.ajax(url, options);
+	return this._ajax(url, options);
 }
 
 {% endfor %}

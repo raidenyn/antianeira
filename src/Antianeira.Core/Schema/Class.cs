@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 
 namespace Antianeira.Schema
@@ -6,24 +7,32 @@ namespace Antianeira.Schema
     /// <summary>
     /// Type script Class definition
     /// </summary>
-    public class Class: TsType, IWritable
+    public class Class: TsType, IStructure
     {
         public Class(string name): base(name)
         { }
 
         [CanBeNull]
-        public TypeReference BaseClass { get; set; }
+        public virtual TypeReference BaseClass { get; set; }
 
-        public bool IsAbstract { get; set; }
-
-        [NotNull]
-        public ICollection<GenericParameter> Generics { get; } = new List<GenericParameter>();
+        public virtual bool IsAbstract { get; set; }
 
         [NotNull]
-        public ICollection<TypeReference> Interfaces { get; } = new List<TypeReference>();
+        public virtual ICollection<GenericParameter> Generics { get; } = new List<GenericParameter>();
 
         [NotNull]
-        public ICollection<ClassProperty> Properties { get; } = new List<ClassProperty>();
+        public virtual ICollection<TypeReference> Interfaces { get; } = new List<TypeReference>();
+
+        [NotNull]
+        public virtual ICollection<ClassProperty> Properties { get; } = new List<ClassProperty>();
+
+        [NotNull]
+        public virtual ICollection<ClassProperty> ConstructorProperties { get; } = new List<ClassProperty>();
+
+        [NotNull]
+        public virtual ICollection<ClassMethod> Methods { get; } = new List<ClassMethod>();
+
+        IEnumerable<Property> IStructure.Properties => Properties;
 
         public override void Write(IWriter writer)
         {
@@ -58,6 +67,19 @@ namespace Antianeira.Schema
             writer.Append(" {\n");
 
             writer.Join("\n", Properties);
+
+            writer.Append("\n");
+
+            if (ConstructorProperties.Count > 0)
+            {
+                writer.Append("constructor (\n");
+
+                writer.Join("\n", ConstructorProperties);
+
+                writer.Append(") { }\n");
+            }
+
+            writer.Join("\n", Methods);
 
             writer.Append("}\n");
         }

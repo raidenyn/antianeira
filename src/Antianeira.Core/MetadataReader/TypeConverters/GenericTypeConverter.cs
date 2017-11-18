@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using System.Linq;
 using Antianeira.Schema;
 
@@ -7,7 +6,7 @@ namespace Antianeira.MetadataReader.TypeConverters
 {
     public class GenericTypeConverter : ITypeConverter
     {
-        public TypeReference TryConvert([NotNull] Type propertyType, [NotNull] TypeReferenceContext context)
+        public TypeReference TryConvert(Type propertyType, TypeReferenceContext context)
         {
             if (propertyType.IsGenericParameter && context.GenericParameters != null)
             {

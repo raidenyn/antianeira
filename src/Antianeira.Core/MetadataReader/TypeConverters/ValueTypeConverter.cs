@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Antianeira.Schema;
 using System.Collections.Generic;
 
@@ -26,14 +25,8 @@ namespace Antianeira.MetadataReader.TypeConverters
     {
         public virtual IReadOnlyDictionary<Type, Type> PredefinedTypes => PredefinedValueTypes.Types;
 
-        public TypeReference TryConvert([NotNull] Type propertyType, [NotNull] TypeReferenceContext context)
+        public TypeReference TryConvert(Type propertyType, TypeReferenceContext context)
         {
-            var nullableType = Nullable.GetUnderlyingType(propertyType);
-            if (nullableType != null)
-            {
-                propertyType = nullableType;
-            }
-
             if (PredefinedTypes.TryGetValue(propertyType, out Type type))
             {
                 return (TypeReference)Activator.CreateInstance(type);

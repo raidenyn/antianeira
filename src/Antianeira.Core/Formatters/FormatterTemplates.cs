@@ -1,7 +1,4 @@
-﻿using Antianeira.Formatters.Filters;
-using Antianeira.Schema;
-using Antianeira.Schema.Api;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -10,30 +7,31 @@ namespace Antianeira.Formatters
     public interface IFormatterTemplates
     {
         void Render<TObject>(TextWriter writer, TObject variable);
+
+        void Register<TObject>(FormatterTemplate formatter);
     }
 
     public class FormatterTemplates : IFormatterTemplates
     {
-        private static readonly IDictionary<Type, FormatterTemplate> _templates = new Dictionary<Type, FormatterTemplate>
-        {
-            [typeof(Definitions)] =
-              new FormatterTemplate("definitions", new[] { typeof(DefinitionsFilters) }),
-            [typeof(ServiceClient)] =
-              new FormatterTemplate("client", new[] { typeof(ServiceClientFilters), typeof(ServiceClientMethodFilters) }),
-        };
+        private static readonly IDictionary<Type, FormatterTemplate> Templates = new Dictionary<Type, FormatterTemplate>();
+
+        public static IFormatterTemplates Current { get; } = new FormatterTemplates();
 
         private FormatterTemplates() { }
 
-        public static IFormatterTemplates Current { get; set; } = new FormatterTemplates();
-
-        public FormatterTemplate GetTemplate<TObject>()
+        public void Register<TObject>(FormatterTemplate formatter)
         {
-            return _templates[typeof(TObject)];
+            Templates[typeof(TObject)] = formatter;
         }
 
         public void Render<TObject>(TextWriter writer, TObject variable)
         {
             GetTemplate<TObject>().Render(writer, variable);
+        }
+
+        private FormatterTemplate GetTemplate<TObject>()
+        {
+            return Templates[typeof(TObject)];
         }
     }
 }

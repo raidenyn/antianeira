@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Antianeira.Schema;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +6,17 @@ using System.Reflection;
 
 namespace Antianeira.MetadataReader.TypeConverters
 {
-    public class DictionayTypeConverter : ITypeConverter
+    public class DictionaryTypeConverter : ITypeConverter
     {
         private readonly ITypeReferenceMapper _typeReferenceMapper;
 
-        public DictionayTypeConverter(
+        public DictionaryTypeConverter(
             ITypeReferenceMapper typeReferenceMapper
         ) {
             _typeReferenceMapper = typeReferenceMapper;
         }
 
-        public TypeReference TryConvert([NotNull] Type propertyType, [NotNull] TypeReferenceContext context)
+        public TypeReference TryConvert(Type propertyType, TypeReferenceContext context)
         {
             var dictionary = (from @interface in propertyType.GetInterfaces()
                               where @interface.GetTypeInfo().IsGenericType

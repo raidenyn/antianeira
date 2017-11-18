@@ -1,10 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.CommandLineUtils;
-using Antianeira.Schema;
 using Antianeira.MetadataReader;
-using System.Reflection;
-using System.IO;
-using Antianeira.Formatters;
 
 namespace Antianeira
 {
@@ -24,7 +20,7 @@ namespace Antianeira
 
             app.Command("generate", (command) =>
             {
-                command.Description = "Generate typescript file with Angular 2+ clients.";
+                command.Description = "Generate typescript file.";
                 command.HelpOption("-?|-h|--help");
 
                 var input = command.Argument("[input]",
@@ -40,32 +36,40 @@ namespace Antianeira
 
                 command.OnExecute(() =>
                 {
-                    var options = new ApiControllerLoaderOptions
+                    new GenerateCommand(new GenerateParams
                     {
-                        TypeFilter = types.HasValue() ? types.Value() : "*"
-                    };
+                        AssemblyPath = input.Value,
+                        OutputPath = output.Value(),
+                        Options = new ApiControllerLoaderOptions
+                        {
+                            TypeFilter = types.HasValue() ? types.Value() : "*"
+                        }
+                    }).Execute();
 
-                    Generate(input.Value, output.Value(), options);
+                    return 0;
+                });
+            });
+
+            app.Command("exec", (command) =>
+            {
+                command.Description = "Execute configuration from custom assembly.";
+                command.HelpOption("-?|-h|--help");
+
+                var input = command.Argument("[input]",
+                    "Path to .NET assembly with antianeira configuration.");
+
+                command.OnExecute(() =>
+                {
+                    new ExecuteCommand(new ExecuteParams
+                    {
+                        AssemblyPath = input.Value
+                    }).Execute();
+
                     return 0;
                 });
             });
 
             app.Execute(args);
-        }
-
-        public static void Generate(string assemblyPath, string outputPath, ApiControllerLoaderOptions options) {
-            var definitions = new Definitions();
-
-            new ApiControllerLoader().Read(Assembly.LoadFrom(assemblyPath), definitions, options);
-
-            if (String.IsNullOrEmpty(outputPath)) {
-                outputPath = Path.ChangeExtension(assemblyPath, "ts");
-            }
-
-            using (var output = new AlignStreamWriter(new FileStream(outputPath, FileMode.Create, FileAccess.Write)))
-            {
-                FormatterTemplates.Current.Render(output, definitions);
-            }
         }
     }
 }

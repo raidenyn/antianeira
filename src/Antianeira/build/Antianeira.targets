@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      GenerateTypeScript;
+    </BuildDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GenerateTypeScript" AfterTargets="AntianeiraProperties">
+    <Message Text="Running Antianeyra TypeScript generation:" Importance="high" />
+    <Message Text="   Source: $(AntianeiraDotNetSource)" Importance="high" />
+    <Message Text="   Destination: $(AntianeiraTypeScriptFile)" Importance="high" />
+    
+    <Exec Command='dotnet "$(AntianeiraExePath)" generate "$(AntianeiraDotNetSource)" -o "$(AntianeiraTypeScriptFile)"'
+          ContinueOnError="true"
+          IgnoreExitCode="true"
+          ConsoleToMsBuild="true" >
+      <Output TaskParameter="ExitCode" PropertyName="AntianeiraExitCode"/>
+    </Exec>
+  </Target>
+</Project>

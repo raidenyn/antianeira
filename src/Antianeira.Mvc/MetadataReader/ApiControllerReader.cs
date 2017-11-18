@@ -1,227 +1,79 @@
 ﻿using Antianeira.Schema;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Antianeira.MetadataReader
 {
-    public class ApiControllerLoader
+    public interface IApiControllerReader
     {
-        private readonly MappingSettings _settings;
+        void Read([NotNull] Assembly assembly, [NotNull] ServicesDefinitions serivces, ApiControllerLoaderOptions options = null);
+    }
 
-        public ApiControllerLoader(MappingSettings settings = null)
+    public class ApiControllerReader: IApiControllerReader
+    {
+        private readonly IServiceNameMapper _serviceNameMapper;
+        private readonly IControllerChecker _controllerChecker;
+        private readonly IActionChecker _actionChecker;
+        private readonly IServiceMethodMapper _serviceMethodMapper;
+
+        public ApiControllerReader(
+            IServiceNameMapper serviceNameMapper, 
+            IControllerChecker controllerChecker, 
+            IActionChecker actionChecker, 
+            IServiceMethodMapper serviceMethodMapper)
         {
-            _settings = settings ?? new MappingSettings();
+            _serviceNameMapper = serviceNameMapper;
+            _controllerChecker = controllerChecker;
+            _actionChecker = actionChecker;
+            _serviceMethodMapper = serviceMethodMapper;
         }
 
-        [NotNull]
-        public void Read([NotNull] Assembly assembly, [NotNull] Services serivces, ApiControllerLoaderOptions options = null) {
+        public void Read(Assembly assembly, ServicesDefinitions definitions, ApiControllerLoaderOptions options = null) {
             options = options ?? new ApiControllerLoaderOptions();
 
             var controllers = from type in assembly.GetTypes()
-                              where typeof(Controller).IsAssignableFrom(type)
+                              where _controllerChecker.IsAvailableContoller(type)
                                     && Glob.Glob.IsMatch(type.FullName, options.TypeFilter)
                               select type;
 
             foreach (var controller in controllers) {
-                AddController(controller, serivces);
+                TryAddController(controller, definitions);
             }
         }
 
-        [NotNull]
-        public void AddController([NotNull] Type controller, [NotNull] Services serivces)
+        public bool TryAddController([NotNull] Type controller, [NotNull] ServicesDefinitions definitions)
         {
-            var name = controller.Name.Replace("Controller", "Client");
+            var name = _serviceNameMapper.MapServiceName(controller);
 
-            var methods = (from method in controller.GetMethods()
-                           where !typeof(IActionResult).IsAssignableFrom(method.ReturnType)
+            var methods = (from method in controller.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance)
+                           where _actionChecker.IsAvailableAction(method)
                            select method).ToArray();
 
             if (methods.Length == 0) {
-                return;
+                return false;
             }
 
-            serivces.Clients.GetOrCreate(name, () => {
-                var client = new ServiceClient(name)
-                {
-                    IsExported = true
-                };
+            var context = new MethodContexts(definitions);
+
+            definitions.Services.GetOrCreate(name, () =>
+            {
+                var service = new Service(name);
 
                 foreach (var methodInfo in methods)
                 {
-                    var method = GetMethod(methodInfo, client, serivces);
+                    var method = _serviceMethodMapper.GetMethod(methodInfo, context);
 
                     if (method != null) {
-                        client.Methods.Add(method);
+                        service.Methods.Add(method);
                     }
                 }
 
-                return client;
+                return service;
             });
-        }
 
-        [CanBeNull]
-        private Method GetMethod([NotNull] MethodInfo methodInfo, [NotNull] ServiceClient client, [NotNull] Services serivces)
-        {
-            var method = new Method
-            {
-                Name = _settings.MethodNameMapper.GetMethodName(methodInfo)
-            };
-
-            var httpMethodAttr = methodInfo.GetCustomAttribute<HttpMethodAttribute>();
-            method.HttpMethod = new HttpMethod(httpMethodAttr?.HttpMethods.FirstOrDefault() ?? HttpMethod.Get.Method);
-
-            var classRouteAttr = methodInfo.DeclaringType.GetTypeInfo().GetCustomAttribute<RouteAttribute>();
-            var methodRouteAttr = methodInfo.GetCustomAttribute<RouteAttribute>();
-
-            if (classRouteAttr == null && methodRouteAttr == null) {
-                return null;
-            }
-
-            method.Url = new MethodUrl
-            {
-                Path = classRouteAttr?.Template + "/" + methodRouteAttr?.Template
-            };
-
-            var parameters = ParametersReader.ReadFrom(methodInfo);
-
-            var bodyParameter = parameters.Find(p => p.PassOver == ParameterPassOver.Body);
-            if (bodyParameter != null)
-            {
-                method.Request = new MethodRequest
-                {
-                    Type = _settings.TypeReferenceMapper.GetTypeReference(bodyParameter.Type.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
-                };
-            }
-
-            var queryParameters = parameters.Where(p => p.PassOver == ParameterPassOver.Query).ToArray();
-            if (queryParameters.Length > 0)
-            {
-                var structureParam = Array.Find(queryParameters, p => !p.Type.IsPrimitive && typeof(string) != p.Type);
-
-                if (structureParam != null)
-                {
-                    method.Url.Parameters.Structure = _settings.DefinitionsMapper.ConvertType(structureParam.Type.GetTypeInfo(), serivces.Definitions);
-                }
-                else {
-                    var singleParameters = queryParameters;
-                    var name = "I" + client.Name + methodInfo.Name + "Request";
-                    method.Url.Parameters.Structure = serivces.Definitions.Interfaces.GetOrCreate(name, () => {
-                        var @interface = new Interface(name)
-                        {
-                            IsExported = true
-                        };
-
-                        foreach (var param in singleParameters)
-                        {
-                            var property = new InterfaceProperty(param.Name)
-                            {
-                                Type = _settings.TypeReferenceMapper.GetTypeReference(param.Type.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
-                            };
-
-                            @interface.Properties.Add(property);
-                        }
-
-                        return @interface;
-                    });
-                }
-            }
-
-            var returnType = GetReturnType(methodInfo);
-            if (returnType != null) {
-                method.Response = new MethodResponse
-                {
-                    Type = _settings.TypeReferenceMapper.GetTypeReference(returnType.GetTypeInfo(), new TypeReferenceContext(serivces.Definitions))
-                };
-            }
-
-            return method;
-        }
-
-        [CanBeNull]
-        private Type GetReturnType([NotNull] MethodInfo methodInfo) {
-            var type = methodInfo.ReturnType;
-
-            if (typeof(Task).IsAssignableFrom(type))
-            {
-                return type.GetGenericArguments().FirstOrDefault();
-            }
-
-            return type;
-        }
-    }
-
-    public enum ParameterPassOver {
-        Query,
-
-        Body,
-
-        Header,
-
-        Route,
-
-        Service,
-
-        Form
-    }
-
-    public class Parameter {
-        public ParameterPassOver PassOver;
-
-        public string Name;
-
-        public Type Type;
-    }
-
-    public static class ParametersReader {
-        public static List<Parameter> ReadFrom(MethodInfo method) {
-            return method.GetParameters().Select(ReadFrom).ToList();
-        }
-
-        public static Parameter ReadFrom(ParameterInfo parameter)
-        {
-            var result = new Parameter
-            {
-                Name = parameter.Name,
-                Type = parameter.ParameterType
-            };
-
-            if (parameter.GetCustomAttribute<FromBodyAttribute>() != null)
-            {
-                result.PassOver = ParameterPassOver.Body;
-            }
-            else if (parameter.GetCustomAttribute<FromFormAttribute>() != null)
-            {
-                result.PassOver = ParameterPassOver.Form;
-            }
-            else if (parameter.GetCustomAttribute<FromHeaderAttribute>() != null)
-            {
-                result.PassOver = ParameterPassOver.Header;
-            }
-            else if (parameter.GetCustomAttribute<FromQueryAttribute>() != null)
-            {
-                result.PassOver = ParameterPassOver.Query;
-            }
-            else if (parameter.GetCustomAttribute<FromRouteAttribute>() != null)
-            {
-                result.PassOver = ParameterPassOver.Route;
-            }
-            else if (parameter.GetCustomAttribute<FromServicesAttribute>() != null)
-            {
-                result.PassOver = ParameterPassOver.Service;
-            }
-            else
-            {
-                result.PassOver = ParameterPassOver.Query;
-            }
-
-            return result;
+            return true;
         }
     }
 

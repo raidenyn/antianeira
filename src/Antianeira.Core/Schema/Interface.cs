@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Antianeira.Schema
 {
-    public class Interface : TsType, IWritable
+    public class Interface : TsType, IStructure
     {
         public Interface(string name): base(name)
         { }
@@ -19,6 +19,8 @@ namespace Antianeira.Schema
 
         [NotNull]
         public ICollection<InterfaceMethod> Methods { get; } = new List<InterfaceMethod>();
+
+        IEnumerable<Property> IStructure.Properties => Properties;
 
         public override void Write(IWriter writer)
         {

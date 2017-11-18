@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Antianeira</id>
+        <version>0.0.3</version>
+        <title>DTO converter from C# to TypeScript</title>
+        <authors>Yuriy Nagaev</authors>
+        <owners>Yuriy Nagaev</owners>
+        <projectUrl>https://github.com/raidenyn/antianeira</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Highly customizable DTO converter from C# to TypeScript</description>
+        <copyright>Yuriy Nagaev</copyright>
+    </metadata>
+    <files>
+        <file src="build\Antianeira.props" target="build\netstandard2.0\Antianeira.props" />
+        <file src="build\Antianeira.targets" target="build\netstandard2.0\Antianeira.targets" />
+        <file src="bin\Release\PublishOutput\**" target="tools\netstandard2.0" />
+    </files>
+</package>
